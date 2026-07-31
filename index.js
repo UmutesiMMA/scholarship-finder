@@ -45,7 +45,7 @@ async function fetchScholarship() {
       "Content-Type": "application/json",
     },
   };
-  return (await fetch(CONFIG.BASE_URL, options)).json();
+  return (await fetch(`${CONFIG.BASE_URL}?offset=0&limit=50`, options)).json();
 }
 
 // cacheEntries();
@@ -96,8 +96,12 @@ function populateFilterDropdown(entries) {
           : available_scholarships.filter((e) => e.type === selected);
 
       currentEntries = filtered;
-      document.querySelector("#filter-label").textContent = `${selected} (${filtered.length})`;
-      renderScholarships(filtered, `No scholarships found for type "${selected}".`);
+      document.querySelector("#filter-label").textContent =
+        `${selected} (${filtered.length})`;
+      renderScholarships(
+        filtered,
+        `No scholarships found for type "${selected}".`,
+      );
       dropdown.classList.remove("open");
     });
   });
@@ -136,8 +140,9 @@ function setupSortDropdown() {
 
 renderScholarships(
   available_scholarships,
-  "No scholarships cached yet. Use the search button to load them."
+  "No scholarships cached yet. Use the search button to load them.",
 );
 populateFilterDropdown(available_scholarships);
 setupSortDropdown();
-document.querySelector("#filter-label").textContent = `All (${available_scholarships.length})`;
+document.querySelector("#filter-label").textContent =
+  `All (${available_scholarships.length})`;
