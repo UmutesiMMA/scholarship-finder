@@ -1,0 +1,42 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script
+      src="https://kit.fontawesome.com/b46022a755.js"
+      crossorigin="anonymous"
+    ></script>
+    <link rel="stylesheet" href="styles.css" />
+    <title>Scholarship-finder</title>
+  </head>
+  <body>
+    <h1>Scholarship-finder</h1>
+    <section class="action-buttons">
+      <div class="dropdown-wrapper">
+        <button type="button" id="filter-btn" title="Filter">
+          <span id="filter-label">All</span>
+          <i class="fa-solid fa-filter"></i>
+        </button>
+        <ul class="dropdown-menu" id="filter-dropdown">
+          <li>Scholarship</li>
+          <li>Grant</li>
+          <li>Fellowship</li>
+          <li>Prize</li>
+        </ul>
+      </div>
+      <div class="dropdown-wrapper">
+        <button type="button" id="sort-btn" title="Sort by">
+          <i class="fa-solid fa-arrow-up-wide-short"></i>
+        </button>
+        <ul class="dropdown-menu" id="sort-dropdown">
+          <li data-sort="default">Default</li>
+          <li data-sort="az">A-Z</li>
+          <li data-sort="deadline">Due date</li>
+        </ul>
+      </div>
+    </section>
+    <section class="available-scholarships"></section>
+    <script src="config.js"></script>
+    <script src="index.js"></script>
+  </body>
+</html>
