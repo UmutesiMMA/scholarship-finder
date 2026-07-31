@@ -25,15 +25,15 @@ async function cacheEntries() {
   if (existingEntries.length === 0) {
     try {
       const res = await fetchScholarship();
-
       const data = await res["results"];
       localStorage.setItem(ALL_SCHOLARSHIPS_KEY, JSON.stringify(data));
-      console.log(data);
+      existingEntries = data;
     } catch (e) {
       console.log("Error caching entries");
       console.log(e);
     }
   }
+  return existingEntries;
 }
 
 async function fetchScholarship() {
@@ -48,9 +48,8 @@ async function fetchScholarship() {
   return (await fetch(`${CONFIG.BASE_URL}?offset=0&limit=50`, options)).json();
 }
 
-// cacheEntries();
-available_scholarships = loadEntries();
-let currentEntries = [...available_scholarships];
+let available_scholarships = [];
+let currentEntries = [];
 
 function renderScholarships(entries, emptyMessage = "No scholarships found.") {
   const section = document.querySelector(".available-scholarships");
@@ -138,11 +137,12 @@ function setupSortDropdown() {
   });
 }
 
-renderScholarships(
-  available_scholarships,
-  "No scholarships cached yet. Use the search button to load them.",
-);
-populateFilterDropdown(available_scholarships);
-setupSortDropdown();
-document.querySelector("#filter-label").textContent =
-  `All (${available_scholarships.length})`;
+cacheEntries().then((entries) => {
+  available_scholarships = entries;
+  currentEntries = [...entries];
+  renderScholarships(available_scholarships, "No scholarships found.");
+  populateFilterDropdown(available_scholarships);
+  setupSortDropdown();
+  document.querySelector("#filter-label").textContent =
+    `All (${available_scholarships.length})`;
+});
