@@ -4,8 +4,8 @@ const id = params.get("id");
 const DETAIL_KEY = (id) => `scholarship_detail_${id}`;
 
 async function fetchDetails(id) {
-  const API_BASE =
-    window.location.hostname === "localhost" ? "http://localhost:3000" : "";
+  const port = window.location.port;
+  const API_BASE = !port || port === "3000" ? "" : "http://localhost:3000";
   const res = await fetch(`${API_BASE}/api/scholarships/${id}`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
@@ -14,6 +14,15 @@ async function fetchDetails(id) {
 async function getDetails(id) {
   const cached = localStorage.getItem(DETAIL_KEY(id));
   if (cached) return JSON.parse(cached);
+
+  const allCached = localStorage.getItem("all_scholarships");
+  if (allCached) {
+    const found = JSON.parse(allCached).find((s) => s.id === id);
+    if (found) {
+      localStorage.setItem(DETAIL_KEY(id), JSON.stringify(found));
+      return found;
+    }
+  }
 
   const data = await fetchDetails(id);
   localStorage.setItem(DETAIL_KEY(id), JSON.stringify(data));

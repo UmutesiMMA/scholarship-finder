@@ -4,6 +4,11 @@ const axios = require("axios");
 
 const app = express();
 
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  next();
+});
+
 app.get("/api/scholarships", async (req, res) => {
   try {
     const response = await axios.get(process.env.BASE_URL, {

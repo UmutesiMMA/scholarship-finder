@@ -32,8 +32,8 @@ async function cacheEntries() {
 }
 
 async function fetchScholarship() {
-  const API_BASE =
-    window.location.hostname === "localhost" ? "http://localhost:3000" : "";
+  const port = window.location.port;
+  const API_BASE = !port || port === "3000" ? "" : "http://localhost:3000";
   const res = await fetch(`${API_BASE}/api/scholarships`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
