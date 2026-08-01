@@ -23,29 +23,20 @@ function loadEntries() {
 async function cacheEntries() {
   let existingEntries = loadEntries();
   if (existingEntries.length === 0) {
-    try {
-      const res = await fetchScholarship();
-      const data = await res["results"];
-      localStorage.setItem(ALL_SCHOLARSHIPS_KEY, JSON.stringify(data));
-      existingEntries = data;
-    } catch (e) {
-      console.log("Error caching entries");
-      console.log(e);
-    }
+    const res = await fetchScholarship();
+    const data = res["results"];
+    localStorage.setItem(ALL_SCHOLARSHIPS_KEY, JSON.stringify(data));
+    existingEntries = data;
   }
   return existingEntries;
 }
 
 async function fetchScholarship() {
-  const options = {
-    method: "GET",
-    headers: {
-      "x-rapidapi-key": CONFIG.API_KEY,
-      "x-rapidapi-host": CONFIG.API_HOST,
-      "Content-Type": "application/json",
-    },
-  };
-  return (await fetch(`${CONFIG.BASE_URL}?offset=0&limit=50`, options)).json();
+  const API_BASE =
+    window.location.hostname === "localhost" ? "http://localhost:3000" : "";
+  const res = await fetch(`${API_BASE}/api/scholarships`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
 }
 
 let available_scholarships = [];
@@ -137,12 +128,17 @@ function setupSortDropdown() {
   });
 }
 
-cacheEntries().then((entries) => {
-  available_scholarships = entries;
-  currentEntries = [...entries];
-  renderScholarships(available_scholarships, "No scholarships found.");
-  populateFilterDropdown(available_scholarships);
-  setupSortDropdown();
-  document.querySelector("#filter-label").textContent =
-    `All (${available_scholarships.length})`;
-});
+cacheEntries()
+  .then((entries) => {
+    available_scholarships = entries;
+    currentEntries = [...entries];
+    renderScholarships(available_scholarships, "No scholarships found.");
+    populateFilterDropdown(available_scholarships);
+    setupSortDropdown();
+    document.querySelector("#filter-label").textContent =
+      `All (${available_scholarships.length})`;
+  })
+  .catch((e) => {
+    console.error("Error loading scholarships:", e);
+    renderScholarships([], "Unable to load scholarships.");
+  });

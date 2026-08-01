@@ -4,15 +4,11 @@ const id = params.get("id");
 const DETAIL_KEY = (id) => `scholarship_detail_${id}`;
 
 async function fetchDetails(id) {
-  const options = {
-    method: "GET",
-    headers: {
-      "x-rapidapi-key": CONFIG.API_KEY,
-      "x-rapidapi-host": CONFIG.API_HOST,
-    },
-  };
-  const response = await fetch(`${CONFIG.BASE_URL}/${id}`, options);
-  return response.json();
+  const API_BASE =
+    window.location.hostname === "localhost" ? "http://localhost:3000" : "";
+  const res = await fetch(`${API_BASE}/api/scholarships/${id}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
 }
 
 async function getDetails(id) {
@@ -86,14 +82,16 @@ function renderDetails(data) {
           <span class="detail-label">Education level</span>
           <span>${data.eligibility?.education_level ?? "-"}</span>
         </div>
-        ${data.eligibility?.other?.length
-          ? `<div class="detail-row detail-row-col">
+        ${
+          data.eligibility?.other?.length
+            ? `<div class="detail-row detail-row-col">
               <span class="detail-label">Other requirements</span>
               <ol class="detail-list">
                 ${data.eligibility.other.map((item) => `<li>${item}</li>`).join("")}
               </ol>
             </div>`
-          : ""}
+            : ""
+        }
       </section>
 
       <section class="details-card details-links">
