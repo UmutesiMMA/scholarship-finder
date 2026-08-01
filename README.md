@@ -24,4 +24,4 @@ The server also hosts the nodejs server that the web app passes through to send 
 This server has to be run using the command: `node server.js` for the .env file to be loaded and thus successfully send a request to the api.
 
 
-Demo video: 
+Demo video: https://youtu.be/yuSzRnknfAM
