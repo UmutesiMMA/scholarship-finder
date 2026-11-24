@@ -20,6 +20,7 @@ function loadEntries() {
   return JSON.parse(localStorage.getItem(ALL_SCHOLARSHIPS_KEY) || "[]");
 }
 
+//Caching
 async function cacheEntries() {
   let existingEntries = loadEntries();
   if (existingEntries.length === 0) {
@@ -69,6 +70,59 @@ function renderScholarships(entries, emptyMessage = "No scholarships found.") {
   });
 }
 
+//  Dialog
+let dialogElt = document.querySelector("dialog");
+document
+  .querySelector(".get-tailored-scholarship-btn")
+  .addEventListener("click", function () {
+    dialogElt.showModal();
+  });
+
+document
+  .querySelector(".eligibility-cancel-btn")
+  .addEventListener("click", function () {
+    dialogElt.close();
+  });
+
+document
+  .querySelector(".eligibility-form")
+  .addEventListener("submit", function (e) {
+    e.preventDefault();
+    let residency = document.getElementById("residency").value;
+    let ed_level = document.getElementById("ed_level").value;
+    let study_field = document.getElementById("study_field").value;
+    let gpa = document.getElementById("gpa").value;
+    console.log(
+      `res:${residency} | ed level: ${ed_level} | study field: ${study_field} | gpa ${gpa}`,
+    );
+
+    let tailoredScholarships = available_scholarships.filter((s) => {
+      let eligibility = s.eligibility;
+      let resValues = eligibility.residency;
+      let eduLevelValues = eligibility.education_level;
+      let studyFieldValues = eligibility.fields_of_study;
+
+      const residenceMatch =
+        !residency || resValues.length === 0 || resValues.includes(residency);
+      const eduLevelMatch =
+        !ed_level ||
+        eduLevelValues.length === 0 ||
+        eduLevelValues.includes(ed_level);
+      const studyFieldMatch =
+        !study_field ||
+        studyFieldValues.length === 0 ||
+        studyFieldValues.some((f) => f.includes(ed_level));
+      const gpaMatch =
+        !gpa || !eligibility.gpa_min || parseFloat(gpa) >= eligibility.gpa_min;
+
+      return residenceMatch && eduLevelMatch && studyFieldMatch && gpaMatch;
+      what;
+    });
+    dialogElt.close();
+    renderScholarships(tailoredScholarships);
+  });
+
+// Filter
 function populateFilterDropdown(entries) {
   const dropdown = document.querySelector("#filter-dropdown");
   const types = ["All", ...new Set(entries.map((e) => e.type).filter(Boolean))];
@@ -127,6 +181,15 @@ function setupSortDropdown() {
     });
   });
 }
+async function populateResidencySelect() {
+  let res = await fetch("data/states.json");
+  let states = await res.json();
+
+  let selectResidency = document.getElementById("residency");
+  selectResidency.innerHTML = states.map((s) => (
+    `<option value=${s.code}>${s.name}</option>`
+  ));
+}
 
 cacheEntries()
   .then((entries) => {
@@ -137,6 +200,7 @@ cacheEntries()
     setupSortDropdown();
     document.querySelector("#filter-label").textContent =
       `All (${available_scholarships.length})`;
+    populateResidencySelect();
   })
   .catch((e) => {
     console.error("Error loading scholarships:", e);

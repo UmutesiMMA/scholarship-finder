@@ -35,6 +35,41 @@
         </ul>
       </div>
     </section>
+    <button class="get-tailored-scholarship-btn">
+      Get scholarships tailored to you
+    </button>
+    <dialog class="eligibility-dialog">
+      <p>Get scholarships tailored to you</p>
+      <form action="" class="eligibility-form">
+        <label for="residency">Residency</label>
+        <select type="text" name="residency" id="residency" ></select>
+        <label for="ed_level">Education level</label>
+        <select type="text" name="ed_level" id="ed_level">
+          <option value="">Choose education level</option>
+          <option value="any">Any</option>
+          <option value="middle-school">Middle school</option>
+          <option value="high-school">High school</option>
+          <option value="high-school-senior">High school senior</option>
+          <option value="ged">GED</option>
+          <option value="undergraduate">Undergraduate</option>
+          <option value="community-college">Community College</option>
+          <option value="graduate">Graduate</option>
+          <option value="vocational">Vocational</option>
+          <option value="adult-returning">Adult returning</option>
+        </select>
+
+        <label for="study_field">Field of study</label>
+        <input type="text" name="study_field" id="study_field" />
+        <label for="gpa">GPA</label>
+        <input type="number" name="gpa" id="gpa" />
+        <div>
+          <button class="eligibility-cancel-btn" type="button">Cancel</button>
+          <button class="eligibility-calc-btn" type="submit">
+            Tailor scholarships
+          </button>
+        </div>
+      </form>
+    </dialog>
     <section class="available-scholarships"></section>
     <script src="index.js"></script>
   </body>

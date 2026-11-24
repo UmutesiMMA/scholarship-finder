@@ -1,9 +1,10 @@
-require("dotenv").config();
+require("dotenv").config({ path: require("path").join(__dirname, ".env") });
 const express = require("express");
 const axios = require("axios");
 
 const app = express();
 
+app.use(express.static(require("path").join(__dirname, "..")));
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   next();
