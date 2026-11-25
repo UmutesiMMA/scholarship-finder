@@ -1,18 +1,25 @@
-document.querySelectorAll(".dropdown-wrapper").forEach((wrapper) => {
-  const btn = wrapper.querySelector("button");
-  const menu = wrapper.querySelector(".dropdown-menu");
+let available_scholarships = [];
+let currentEntries = [];
+let activeType = "all";
+let activeSort = "default";
+let activeView = "browse";
+let searchQuery = "";
+let profile = {
+  residency: { value: null, label: null },
+  ed_level: { value: null, label: null },
+  study_field: { value: null, label: null },
+  gpa: { value: null, label: null },
+};
 
-  btn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    menu.classList.toggle("open");
-  });
-});
-
-document.addEventListener("click", () => {
-  document.querySelectorAll(".dropdown-menu.open").forEach((menu) => {
-    menu.classList.remove("open");
-  });
-});
+function getTypeInfo(type) {
+  const map = {
+    scholarship: { icon: "graduation-cap", badge: "scholarship" },
+    grant: { icon: "hand-holding-dollar", badge: "grant" },
+    fellowship: { icon: "users", badge: "fellowship" },
+    prize: { icon: "trophy", badge: "prize" },
+  };
+  return map[(type || "").toLowerCase()] || { icon: "star", badge: "default" };
+}
 
 const ALL_SCHOLARSHIPS_KEY = "all_scholarships";
 
@@ -20,7 +27,14 @@ function loadEntries() {
   return JSON.parse(localStorage.getItem(ALL_SCHOLARSHIPS_KEY) || "[]");
 }
 
-//Caching
+async function fetchScholarship() {
+  const port = window.location.port;
+  const API_BASE = !port || port === "3000" ? "" : "http://localhost:3000";
+  const res = await fetch(`${API_BASE}/api/scholarships`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
 async function cacheEntries() {
   let existingEntries = loadEntries();
   if (existingEntries.length === 0) {
@@ -32,177 +46,306 @@ async function cacheEntries() {
   return existingEntries;
 }
 
-async function fetchScholarship() {
-  const port = window.location.port;
-  const API_BASE = !port || port === "3000" ? "" : "http://localhost:3000";
-  const res = await fetch(`${API_BASE}/api/scholarships`);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+function applyFilters() {
+  let entries = [...available_scholarships];
+
+  if (activeType !== "all") {
+    entries = entries.filter((e) => e.type === activeType);
+  }
+
+  const hasProfile = Object.values(profile).some((p) => p.value);
+  if (hasProfile) {
+    entries = entries.filter((s) => {
+      const elig = s.eligibility;
+      const resValues = Array.isArray(elig?.residency)
+        ? elig.residency
+        : elig?.residency
+          ? [elig.residency]
+          : [];
+      const eduValues = Array.isArray(elig?.education_level)
+        ? elig.education_level
+        : elig?.education_level
+          ? [elig.education_level]
+          : [];
+
+      const studyFieldValues = Array.isArray(elig?.fields_of_study)
+        ? elig.fields_of_study
+        : elig?.fields_of_study
+          ? [elig.fields_of_study]
+          : [];
+
+      const residenceMatch =
+        !profile.residency.value ||
+        resValues.length === 0 ||
+        resValues.includes(profile.residency.value);
+      const eduMatch =
+        !profile.ed_level.value ||
+        eduValues.length === 0 ||
+        eduValues.includes(profile.ed_level.value);
+      const studyFieldMatch =
+        !profile.study_field.value ||
+        studyFieldValues.length === 0 ||
+        studyFieldValues.some((f) =>
+          f.toLowerCase().includes(profile.study_field.value.toLowerCase()),
+        );
+      const gpaMatch =
+        !profile.gpa.value ||
+        !elig?.gpa_min ||
+        parseFloat(profile.gpa.value) >= elig.gpa_min;
+
+      return residenceMatch && eduMatch && studyFieldMatch && gpaMatch;
+    });
+  }
+
+  if (searchQuery) {
+    entries = entries.filter((s) => s.name.toLowerCase().includes(searchQuery));
+  }
+
+  if (activeSort === "az") {
+    entries.sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+  } else if (activeSort === "deadline") {
+    entries.sort((a, b) => {
+      const dA = a.deadline?.date ? new Date(a.deadline.date) : null;
+      const dB = b.deadline?.date ? new Date(b.deadline.date) : null;
+      if (!dA && !dB) return 0;
+      if (!dA) return 1;
+      if (!dB) return -1;
+      return dA - dB;
+    });
+  }
+
+  if (activeView === "saved") {
+    entries = entries.filter((e) => getSaved().includes(e.id));
+  }
+
+  return entries;
 }
 
-let available_scholarships = [];
-let currentEntries = [];
-
-function renderScholarships(entries, emptyMessage = "No scholarships found.") {
+function renderScholarships() {
+  const entries = applyFilters();
+  currentEntries = entries;
   const section = document.querySelector(".available-scholarships");
   section.innerHTML = "";
 
+  document.getElementById("saved-count").textContent = getSaved().length;
+
   if (entries.length === 0) {
-    section.innerHTML = `<p class='empty-state'>${emptyMessage}</p>`;
+    const msg =
+      activeView === "saved"
+        ? "No saved scholarships yet — bookmark some to see them here."
+        : "No scholarships found.";
+    section.innerHTML = `<p class="empty-state">${msg}</p>`;
     return;
   }
 
-  entries.forEach((entry, index) => {
+  entries.forEach((entry) => {
     const card = document.createElement("div");
-    card.className = `scholarship-card card-gradient-${(index % 5) + 1}`;
+    card.className = "scholarship-card";
+    const { icon, badge } = getTypeInfo(entry.type);
+    const isSaved = getSaved().includes(entry.id);
     card.innerHTML = `
-      <span class="pill pill-status">${entry.status ?? "Unknown"}</span>
+      <div class="card-top">
+        <div class="card-type-badge card-badge-${badge}">
+          <i class="fa-solid fa-${icon}"></i>
+        </div>
+        <button class="save-btn${isSaved ? " saved" : ""}" aria-label="${isSaved ? "Unsave" : "Save"}">
+          <i class="fa-${isSaved ? "solid" : "regular"} fa-bookmark"></i>
+        </button>
+      </div>
       <h3 class="card-name">${entry.name}</h3>
       <p class="card-sponsor">${entry.sponsor}</p>
       <p class="card-summary">${entry.summary !== undefined ? entry.summary : "-"}</p>
       <p class="card-deadline">Deadline: ${entry.deadline?.date ?? "N/A"}</p>
       <div class="card-footer">
-        <span class="pill pill-type">${entry.type}</span>
-        <a class="card-readmore" href="details.html?id=${entry.id}">Read more →</a>
+        <a class="card-readmore" href="details.html?id=${entry.id}">Read more</a>
       </div>
     `;
     section.appendChild(card);
+
+    card.querySelector(".save-btn").addEventListener("click", function () {
+      const nowSaved = toggleSave(entry.id);
+      this.className = `save-btn${nowSaved ? " saved" : ""}`;
+      this.setAttribute("aria-label", nowSaved ? "Unsave" : "Save");
+      this.innerHTML = `<i class="fa-${nowSaved ? "solid" : "regular"} fa-bookmark"></i>`;
+      document.getElementById("saved-count").textContent = getSaved().length;
+      if (activeView === "saved") renderScholarships();
+    });
   });
 }
 
-//  Dialog
-let dialogElt = document.querySelector("dialog");
-document
-  .querySelector(".get-tailored-scholarship-btn")
-  .addEventListener("click", function () {
-    dialogElt.showModal();
-  });
+function renderProfileBar() {
+  const bar = document.getElementById("profile-bar");
+  const tagsContainer = document.getElementById("profile-tags");
 
-document
-  .querySelector(".eligibility-cancel-btn")
-  .addEventListener("click", function () {
-    dialogElt.close();
-  });
+  const hasProfile = Object.values(profile).some((p) => p.value);
+  if (!hasProfile) {
+    bar.hidden = true;
+    return;
+  }
 
-document
-  .querySelector(".eligibility-form")
-  .addEventListener("submit", function (e) {
-    e.preventDefault();
-    let residency = document.getElementById("residency").value;
-    let ed_level = document.getElementById("ed_level").value;
-    let study_field = document.getElementById("study_field").value;
-    let gpa = document.getElementById("gpa").value;
-    console.log(
-      `res:${residency} | ed level: ${ed_level} | study field: ${study_field} | gpa ${gpa}`,
-    );
+  bar.hidden = false;
 
-    let tailoredScholarships = available_scholarships.filter((s) => {
-      let eligibility = s.eligibility;
-      let resValues = eligibility.residency;
-      let eduLevelValues = eligibility.education_level;
-      let studyFieldValues = eligibility.fields_of_study;
+  const tagDefs = [
+    {
+      key: "residency",
+      label: profile.residency.label || profile.residency.value,
+    },
+    {
+      key: "ed_level",
+      label: profile.ed_level.label || profile.ed_level.value,
+    },
+    { key: "study_field", label: profile.study_field.value },
+    {
+      key: "gpa",
+      label: profile.gpa.value ? `GPA ${profile.gpa.value}+` : null,
+    },
+  ].filter((t) => t.label);
 
-      const residenceMatch =
-        !residency || resValues.length === 0 || resValues.includes(residency);
-      const eduLevelMatch =
-        !ed_level ||
-        eduLevelValues.length === 0 ||
-        eduLevelValues.includes(ed_level);
-      const studyFieldMatch =
-        !study_field ||
-        studyFieldValues.length === 0 ||
-        studyFieldValues.some((f) => f.includes(ed_level));
-      const gpaMatch =
-        !gpa || !eligibility.gpa_min || parseFloat(gpa) >= eligibility.gpa_min;
-
-      return residenceMatch && eduLevelMatch && studyFieldMatch && gpaMatch;
-      what;
-    });
-    dialogElt.close();
-    renderScholarships(tailoredScholarships);
-  });
-
-// Filter
-function populateFilterDropdown(entries) {
-  const dropdown = document.querySelector("#filter-dropdown");
-  const types = ["All", ...new Set(entries.map((e) => e.type).filter(Boolean))];
-
-  dropdown.innerHTML = types
-    .map((type) => `<li data-type="${type}">${type}</li>`)
+  tagsContainer.innerHTML = tagDefs
+    .map(
+      ({ key, label }) =>
+        `<span class="profile-tag" data-key="${key}">${label}<button aria-label="Remove ${label}">×</button></span>`,
+    )
     .join("");
 
-  dropdown.querySelectorAll("li").forEach((item) => {
-    item.addEventListener("click", () => {
-      const selected = item.dataset.type;
-      const filtered =
-        selected === "All"
-          ? available_scholarships
-          : available_scholarships.filter((e) => e.type === selected);
-
-      currentEntries = filtered;
-      document.querySelector("#filter-label").textContent =
-        `${selected} (${filtered.length})`;
-      renderScholarships(
-        filtered,
-        `No scholarships found for type "${selected}".`,
-      );
-      dropdown.classList.remove("open");
+  tagsContainer.querySelectorAll(".profile-tag button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const key = btn.closest(".profile-tag").dataset.key;
+      profile[key] = { value: null, label: null };
+      renderProfileBar();
+      renderScholarships();
     });
   });
 }
 
-function setupSortDropdown() {
-  const dropdown = document.querySelector("#sort-dropdown");
+function setupTabs() {
+  document.getElementById("tabs").addEventListener("click", (e) => {
+    const tab = e.target.closest(".tab");
+    if (!tab) return;
+    activeView = tab.dataset.view;
+    document
+      .querySelectorAll(".tab")
+      .forEach((t) => t.setAttribute("aria-selected", t === tab));
+    renderScholarships();
+  });
+}
 
-  dropdown.querySelectorAll("li").forEach((item) => {
-    item.addEventListener("click", () => {
-      const sortBy = item.dataset.sort;
-      const sorted = [...currentEntries];
+function populateFilterChips(entries) {
+  const container = document.getElementById("filter-chips");
+  const types = ["All", ...new Set(entries.map((e) => e.type).filter(Boolean))];
 
-      if (sortBy === "default") {
-        renderScholarships(currentEntries);
-        dropdown.classList.remove("open");
-        return;
-      } else if (sortBy === "az") {
-        sorted.sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
-      } else if (sortBy === "deadline") {
-        sorted.sort((a, b) => {
-          const dateA = a.deadline?.date ? new Date(a.deadline.date) : null;
-          const dateB = b.deadline?.date ? new Date(b.deadline.date) : null;
-          if (!dateA && !dateB) return 0;
-          if (!dateA) return 1;
-          if (!dateB) return -1;
-          return dateA - dateB;
-        });
-      }
+  container.innerHTML = types
+    .map(
+      (type) =>
+        `<button class="chip" data-type="${type.toLowerCase()}" aria-pressed="${type.toLowerCase() === activeType}">${type}</button>`,
+    )
+    .join("");
 
-      renderScholarships(sorted);
-      dropdown.classList.remove("open");
+  container.querySelectorAll(".chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      activeType = chip.dataset.type;
+      container
+        .querySelectorAll(".chip")
+        .forEach((c) => c.setAttribute("aria-pressed", c === chip));
+      renderScholarships();
     });
   });
 }
+
+// Sort
+function setupSortSelect() {
+  document.getElementById("sort-select").addEventListener("change", (e) => {
+    activeSort = e.target.value;
+    renderScholarships();
+  });
+}
+
+//  Search by name
+function setupSearch() {
+  document.getElementById("search-input").addEventListener("input", (e) => {
+    searchQuery = e.target.value.toLowerCase().trim();
+    renderScholarships();
+  });
+}
+
+// Tailor scholarship Dialog
+function setupDialog() {
+  const dialog = document.querySelector(".eligibility-dialog");
+
+  document.getElementById("open-tailored-btn").addEventListener("click", () => {
+    dialog.showModal();
+  });
+
+  document
+    .querySelector(".eligibility-cancel-btn")
+    .addEventListener("click", () => {
+      dialog.close();
+    });
+
+  document
+    .querySelector(".eligibility-form")
+    .addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const residencySelect = document.getElementById("residency");
+      const edLevelSelect = document.getElementById("ed_level");
+
+      profile.residency = {
+        value: residencySelect.value || null,
+        label: residencySelect.value
+          ? residencySelect.options[residencySelect.selectedIndex]?.text
+          : null,
+      };
+
+      profile.ed_level = {
+        value: edLevelSelect.value || null,
+        label: edLevelSelect.value
+          ? edLevelSelect.options[edLevelSelect.selectedIndex]?.text
+          : null,
+      };
+
+      const studyFieldVal = document.getElementById("study_field").value.trim();
+      profile.study_field = {
+        value: studyFieldVal || null,
+        label: studyFieldVal || null,
+      };
+
+      const gpaVal = document.getElementById("gpa").value.trim();
+      profile.gpa = {
+        value: gpaVal || null,
+        label: gpaVal ? `GPA ${gpaVal}+` : null,
+      };
+
+      dialog.close();
+      renderProfileBar();
+      renderScholarships();
+    });
+}
+
+// Residency select
 async function populateResidencySelect() {
-  let res = await fetch("data/states.json");
-  let states = await res.json();
-
-  let selectResidency = document.getElementById("residency");
-  selectResidency.innerHTML = states.map((s) => (
-    `<option value=${s.code}>${s.name}</option>`
-  ));
+  const res = await fetch("data/states.json");
+  const states = await res.json();
+  const select = document.getElementById("residency");
+  select.innerHTML =
+    '<option value="">Choose state</option>' +
+    states.map((s) => `<option value="${s.code}">${s.name}</option>`).join("");
 }
 
+// init
 cacheEntries()
   .then((entries) => {
     available_scholarships = entries;
-    currentEntries = [...entries];
-    renderScholarships(available_scholarships, "No scholarships found.");
-    populateFilterDropdown(available_scholarships);
-    setupSortDropdown();
-    document.querySelector("#filter-label").textContent =
-      `All (${available_scholarships.length})`;
+    renderScholarships();
+    populateFilterChips(entries);
+    setupTabs();
+    setupSortSelect();
+    setupSearch();
+    setupDialog();
     populateResidencySelect();
   })
   .catch((e) => {
     console.error("Error loading scholarships:", e);
-    renderScholarships([], "Unable to load scholarships.");
+    document.querySelector(".available-scholarships").innerHTML =
+      `<p class="empty-state">Unable to load scholarships.</p>`;
   });

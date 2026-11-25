@@ -1,0 +1,329 @@
+:root {
+  --blueberry: #3B4888;
+  --powder: #CCD6F1;
+  --milk: #F8F5ED;
+  --bg: #F4F4F7;
+  --card: #ffffff;
+  --ink: #1a1a2e;
+  --muted: #5F6A9E;
+  --line: #E4DFD2;
+  --brand: #3B4888;
+  --brand-ink: #F8F5ED;
+  --brand-soft: #CCD6F1;
+  --brand-line: #AEBBE3;
+}
+
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font: 15px/1.5 Inter, "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.details-page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Back link */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  text-decoration: none;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+.back-link:hover {
+  color: var(--ink);
+}
+
+/* Hero banner */
+.details-hero {
+  background:  var(--blueberry) ;
+  border-radius: 1.25rem;
+  padding: 1.75rem;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  color: white;
+}
+
+.details-initials-badge {
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
+  border-radius: 0.75rem;
+  width: 3.25rem;
+  height: 3.25rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+}
+
+.details-hero-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.details-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--milk);
+  line-height: 1.25;
+}
+
+.details-sponsor-line {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--powder);
+  opacity: 0.85;
+}
+
+.details-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+}
+
+.details-tag {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+#details-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Summary */
+.details-summary {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  font-size: 0.95rem;
+  color: var(--ink);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Stats row */
+.details-stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.details-stat-tile {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  text-align: center;
+}
+
+.details-stat-badge {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  margin-bottom: 0.2rem;
+}
+
+.details-stat-badge-award    { background: var(--brand-soft); color: var(--brand); }
+.details-stat-badge-deadline { background: #fff4d6; color: #c08000; }
+.details-stat-badge-renewable { background: #d8f8ef; color: #17a97a; }
+.details-stat-badge-who      { background: #dff0ff; color: #2e86de; }
+
+.details-stat-value {
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+
+.details-stat-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+/* Bottom two-column section */
+.details-bottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+/* Eligibility card */
+.details-eligibility-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+.details-eligibility-card h2 {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 0 0 1rem;
+  font-weight: 600;
+}
+
+.details-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.details-checklist li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+.details-check-icon {
+  color: #22c55e;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  width: 1rem;
+  text-align: center;
+}
+
+.details-no-data {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.details-elig-footnote {
+  border-top: 1px solid var(--line);
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-style: italic;
+  line-height: 1.5;
+  display: flex;
+  gap: 0.4rem;
+  align-items: flex-start;
+}
+.details-elig-footnote i { color: #c08000; margin-top: 0.1rem; flex-shrink: 0; }
+
+/* CTA card */
+.details-cta-card {
+  background: var(--card);
+  border-radius: 1rem;
+  border: 2px solid var(--brand);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.details-cta-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--ink);
+}
+
+.details-cta-note {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.cta-btn {
+  display: block;
+  text-align: center;
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+
+.cta-btn-primary {
+  background: var(--brand);
+  color: var(--brand-ink);
+}
+.cta-btn-primary:hover { background: #2e3870; }
+
+.cta-btn-secondary {
+  background: var(--bg);
+  color: var(--ink);
+}
+.cta-btn-secondary:hover { background: var(--line); }
+
+.cta-btn-save {
+  background: var(--card);
+  color: var(--brand);
+  border: 1.5px solid var(--brand);
+}
+.cta-btn-save:hover { background: var(--brand-soft); }
+
+.cta-btn-saved {
+  background: var(--brand);
+  color: var(--brand-ink);
+  border: 1.5px solid var(--brand);
+}
+.cta-btn-saved:hover { background: #2e3870; }
+
+/* Empty / loading state */
+.empty-state {
+  text-align: center;
+  color: var(--muted);
+  font-size: 1.1rem;
+  padding: 3rem;
+}
+
+@media (max-width: 700px) {
+  .details-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .details-bottom {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

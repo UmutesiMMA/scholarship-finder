@@ -7,44 +7,65 @@
       crossorigin="anonymous"
     ></script>
     <link rel="stylesheet" href="styles.css" />
-    <title>Scholarship-finder</title>
+    <title>Scholarship Finder</title>
   </head>
   <body>
-    <h1>Scholarship-finder</h1>
-    <section class="action-buttons">
-      <div class="dropdown-wrapper">
-        <button type="button" id="filter-btn" title="Filter">
-          <span id="filter-label">All</span>
-          <i class="fa-solid fa-filter"></i>
-        </button>
-        <ul class="dropdown-menu" id="filter-dropdown">
-          <li>Scholarship</li>
-          <li>Grant</li>
-          <li>Fellowship</li>
-          <li>Prize</li>
-        </ul>
+    <div class="page-wrap">
+
+      <section class="hero">
+        <h1>Find scholarships that <em>actually fit you</em></h1>
+        <p>Search 50+ scholarships, grants and fellowships, then narrow by type, deadline and eligibility.</p>
+        <div class="hero-search">
+          <label class="search-field">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input
+              type="text"
+              id="search-input"
+              placeholder="Search by name, organization or keyword…"
+              aria-label="Search scholarships"
+            />
+          </label>
+          <button class="btn-tailored" id="open-tailored-btn">
+            <i class="fa-solid fa-sliders"></i>
+            Get tailored matches
+          </button>
+        </div>
+      </section>
+
+      <div class="profile-bar" id="profile-bar" hidden>
+        <span class="profile-label">Your profile:</span>
+        <div class="profile-tags" id="profile-tags"></div>
       </div>
-      <div class="dropdown-wrapper">
-        <button type="button" id="sort-btn" title="Sort by">
-          <i class="fa-solid fa-arrow-up-wide-short"></i>
+
+      <div class="tabs" role="tablist" id="tabs">
+        <button class="tab" role="tab" data-view="browse" aria-selected="true">Browse all</button>
+        <button class="tab" role="tab" data-view="saved" aria-selected="false">
+          <i class="fa-solid fa-bookmark"></i>
+          Saved
+          <span class="tab-count" id="saved-count">0</span>
         </button>
-        <ul class="dropdown-menu" id="sort-dropdown">
-          <li data-sort="default">Default</li>
-          <li data-sort="az">A-Z</li>
-          <li data-sort="deadline">Due date</li>
-        </ul>
       </div>
-    </section>
-    <button class="get-tailored-scholarship-btn">
-      Get scholarships tailored to you
-    </button>
+
+      <div class="filter-row">
+        <div class="filter-chips" id="filter-chips"></div>
+        <select class="sort-select" id="sort-select" aria-label="Sort">
+          <option value="default">Sort: Default</option>
+          <option value="az">Sort: A-Z</option>
+          <option value="deadline">Sort: Due date</option>
+        </select>
+      </div>
+
+      <section class="available-scholarships"></section>
+
+    </div>
+
     <dialog class="eligibility-dialog">
       <p>Get scholarships tailored to you</p>
       <form action="" class="eligibility-form">
         <label for="residency">Residency</label>
-        <select type="text" name="residency" id="residency" ></select>
+        <select name="residency" id="residency"></select>
         <label for="ed_level">Education level</label>
-        <select type="text" name="ed_level" id="ed_level">
+        <select name="ed_level" id="ed_level">
           <option value="">Choose education level</option>
           <option value="any">Any</option>
           <option value="middle-school">Middle school</option>
@@ -57,20 +78,18 @@
           <option value="vocational">Vocational</option>
           <option value="adult-returning">Adult returning</option>
         </select>
-
         <label for="study_field">Field of study</label>
         <input type="text" name="study_field" id="study_field" />
         <label for="gpa">GPA</label>
-        <input type="number" name="gpa" id="gpa" />
+        <input type="number" name="gpa" id="gpa" step="0.1" min="0" max="4" />
         <div>
           <button class="eligibility-cancel-btn" type="button">Cancel</button>
-          <button class="eligibility-calc-btn" type="submit">
-            Tailor scholarships
-          </button>
+          <button class="eligibility-calc-btn" type="submit">Tailor scholarships</button>
         </div>
       </form>
     </dialog>
-    <section class="available-scholarships"></section>
+
+    <script src="utils.js"></script>
     <script src="index.js"></script>
   </body>
 </html>
