@@ -4,7 +4,7 @@ const axios = require("axios");
 const { error } = require("console");
 const required_env = ["BASE_URL", "API_KEY", "API_HOST", "PORT"];
 const missing = required_env.filter((k)=> !process.env[k]);
-if(missing_length){
+if(missing.length){
   console.error(`Missing required env variables: ${missing.join(", ")}`);
   process.exit(1);
 }
