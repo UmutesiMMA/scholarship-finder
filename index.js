@@ -24,15 +24,19 @@ function getTypeInfo(type) {
 const ALL_SCHOLARSHIPS_KEY = "all_scholarships";
 
 function loadEntries() {
-  return JSON.parse(localStorage.getItem(ALL_SCHOLARSHIPS_KEY) || "[]");
+  try{
+    return JSON.parse(localStorage.getItem(ALL_SCHOLARSHIPS_KEY) || "[]");
+  }catch{
+    localStorage.removeItem(ALL_SCHOLARSHIPS_KEY);
+    return [];
+
+  }
 }
 
 async function fetchScholarship() {
   const port = window.location.port;
   const API_BASE = !port || port === "3000" ? "" : "http://localhost:3000";
-  const res = await fetch(`${API_BASE}/api/scholarships`);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+  return fetchJson(`${API_BASE}/api/scholarships`);
 }
 
 async function cacheEntries() {
@@ -40,7 +44,13 @@ async function cacheEntries() {
   if (existingEntries.length === 0) {
     const res = await fetchScholarship();
     const data = res["results"];
+    if(Array.isArray(data)) throw new Error("Unexpected API response shape")
+      try{
     localStorage.setItem(ALL_SCHOLARSHIPS_KEY, JSON.stringify(data));
+  }
+  catch{
+    console.warn("Could not cache scholarships");
+  }
     existingEntries = data;
   }
   return existingEntries;
@@ -324,12 +334,18 @@ function setupDialog() {
 
 // Residency select
 async function populateResidencySelect() {
-  const res = await fetch("data/states.json");
-  const states = await res.json();
   const select = document.getElementById("residency");
-  select.innerHTML =
+  try{
+
+    const res = await fetch("data/states.json");
+    const states = await res.json();
+    select.innerHTML =
     '<option value="">Choose state</option>' +
     states.map((s) => `<option value="${s.code}">${s.name}</option>`).join("");
+  }catch{
+    select.innerHTML = `<option value =""> States unavailable</option>`;
+    select.setAttribute(disabled);
+  }
 }
 
 // init
@@ -337,15 +353,15 @@ cacheEntries()
   .then((entries) => {
     available_scholarships = entries;
     renderScholarships();
-    populateFilterChips(entries);
-    setupTabs();
-    setupSortSelect();
-    setupSearch();
-    setupDialog();
-    populateResidencySelect();
-  })
+    populateFilterChips(entries)})
   .catch((e) => {
     console.error("Error loading scholarships:", e);
     document.querySelector(".available-scholarships").innerHTML =
-      `<p class="empty-state">Unable to load scholarships.</p>`;
+    `<p class="empty-state">${e.message|| "Unable to load scholarships."}</p>`;
   });
+
+  setupTabs();
+  setupSortSelect();
+  setupSearch();
+  setupDialog();
+  populateResidencySelect();

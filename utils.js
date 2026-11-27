@@ -1,5 +1,22 @@
 const SAVED_KEY = "saved_scholarships";
 
+//method for fetch handling
+async function fetchJson(url) {
+  const res = await fetch(url);
+  if (!res.ok) {
+    let message;
+    try {
+      message = (await res.json()).error;
+    } catch {}
+
+    const err = new Error(message|| `HTTP${res.status}`);
+    err.status = res.statusl
+    throw err
+  }
+  return res.json();
+}
+
+//methods for save functionality
 function getSaved() {
   return JSON.parse(localStorage.getItem(SAVED_KEY) || "[]");
 }

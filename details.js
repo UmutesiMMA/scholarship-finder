@@ -6,26 +6,39 @@ const DETAIL_KEY = (id) => `scholarship_detail_${id}`;
 async function fetchDetails(id) {
   const port = window.location.port;
   const API_BASE = !port || port === "3000" ? "" : "http://localhost:3000";
-  const res = await fetch(`${API_BASE}/api/scholarships/${id}`);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+  return fetchJson(`${API_BASE}/api/scholarships/${id}`);
+
 }
 
 async function getDetails(id) {
   const cached = localStorage.getItem(DETAIL_KEY(id));
-  if (cached) return JSON.parse(cached);
+  if (cached) {
+    try {
+      return JSON.parse(cached);
+    } catch {
+      localStorage.removeItem(DETAIL_KEY(id));
+    }
+  }
 
   const allCached = localStorage.getItem("all_scholarships");
   if (allCached) {
     const found = JSON.parse(allCached).find((s) => s.id === id);
     if (found) {
-      localStorage.setItem(DETAIL_KEY(id), JSON.stringify(found));
+      try {
+        localStorage.setItem(DETAIL_KEY(id), JSON.stringify(found));
+      } catch {
+        console.warn("Could not cache scholarship details");
+      }
       return found;
     }
   }
 
   const data = await fetchDetails(id);
-  localStorage.setItem(DETAIL_KEY(id), JSON.stringify(data));
+  try {
+    localStorage.setItem(DETAIL_KEY(id), JSON.stringify(data));
+  } catch {
+    console.warn("Could not cache scholarship details");
+  }
   return data;
 }
 
@@ -76,7 +89,8 @@ function renderDetails(data) {
 
   const deadlineDisplay = data.deadline?.date ?? "Not listed";
   const ctaNote =
-    data.deadline?.notes ?? "Verify the current deadline against the source before you start.";
+    data.deadline?.notes ??
+    "Verify the current deadline against the source before you start.";
 
   const initials = getInitials(data.sponsor);
 
@@ -86,7 +100,8 @@ function renderDetails(data) {
     .map((t) => `<span class="details-tag">${t}</span>`)
     .join("");
 
-  const eduLevel = toArray(data.eligibility?.education_level).join(", ") || "N/A";
+  const eduLevel =
+    toArray(data.eligibility?.education_level).join(", ") || "N/A";
   const eligItems = buildEligibilityItems(data.eligibility);
 
   container.innerHTML = `
@@ -178,8 +193,11 @@ async function init() {
     renderDetails(data);
   } catch (e) {
     console.error(e);
+    const msg = e.message.includes("404")
+      ? "This scholarship could not be found."
+      : e.message || "Failed to load scholarship details. Try refreshing the page.";
     document.querySelector("#details-container").innerHTML =
-      "<p class='empty-state'>Failed to load scholarship details.</p>";
+      `<p class='empty-state'>${msg}</p>`;
   }
 }
 
