@@ -2,7 +2,7 @@ require("dotenv").config({ path: require("path").join(__dirname, ".env") });
 const express = require("express");
 const axios = require("axios");
 const { error } = require("console");
-const required_env = ["BASE_URL", "API_KEY", "API_HOST"];
+const required_env = ["BASE_URL", "API_KEY", "API_HOST", "PORT"];
 const missing = required_env.filter((k)=> !process.env[k]);
 if(missing_length){
   console.error(`Missing required env variables: ${missing.join(", ")}`);
@@ -57,4 +57,4 @@ app.use((err,req,res,next)=>{
   res.status(505).json({error:"Something went wrong"});
 })
 
-app.listen(3000, () => console.log("Server listening on port 3000"));
+app.listen(process.env.PORT,"127.0.0.1", () => console.log("Server listening on port 3000"));
